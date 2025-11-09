@@ -1,0 +1,41 @@
+{% extends 'game/base.html' %}
+
+{% block title %}
+  Death by AI - Résultat
+{% endblock %}
+
+{% block subtitle %}
+<div class="subtitle">Ton destin a été scellé...</div>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100/10 p-5 my-5 rounded-lg text-left">
+  <h3 class="text-warning mb-3 text-xl font-semibold">📖 La Situation :</h3>
+  <p class="italic text-gray-200">{{ scenario }}</p>
+</div>
+
+<div class="bg-yellow-100/10 p-5 my-5 rounded-lg text-left">
+  <h3 class="text-warning mb-3 text-xl font-semibold">💭 Votre Stratégie :</h3>
+  <p class="italic text-gray-200">"{{ player_action }}"</p>
+</div>
+
+<div class="result-box {% if result.survived %}result-survived{% else %}result-died{% endif %}">
+  <h2 class="mb-5 text-center text-2xl font-bold">
+    {% if result.survived %}
+      🎉 VOUS SURVIVEZ ! 🎉
+    {% else %}
+      💀 VOUS ÊTES MORT ! 💀
+    {% endif %}
+  </h2>
+  <p class="text-lg leading-normal">{{ result.explanation }}</p>
+</div>
+
+<div class="text-center mt-10 space-y-4 md:space-y-0 md:space-x-4">
+  <a href="{% url 'game:index' %}?new_game=1" class="btn btn-primary">🎮 Nouvelle Partie</a>
+  <a href="{% url 'game:index' %}" class="btn btn-secondary">🏠 Menu Principal</a>
+</div>
+{% endblock %}
+
+{% block navigation %}
+  <!-- Navigation personnalisée dans le contenu -->
+{% endblock %}

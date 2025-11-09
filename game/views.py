@@ -1,57 +1,102 @@
-from django.db.models import F
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
 from django.urls import reverse
-from django.utils import timezone
-from django.views import generic
+import asyncio
 
-from .models import Choice, Question
-
-
-class IndexView(generic.ListView):
-    template_name = "game/index.html"
-    context_object_name = "latest_question_list"
-
-    def get_queryset(self):
-        """
-        Return the last five published questions (not including those set to be published in the future).
-        """
-        return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
+from .services.deathByai import DeathByAI
 
 
-class DetailView(generic.DetailView):
-    model = Question
-    template_name = "game/detail.html"
-    def get_queryset(self):
-        """
-        Excludes any questions that aren't published yet.
-        """
-        return Question.objects.filter(pub_date__lte=timezone.now())
+def index(request):
+    if request.GET.get('new_game'):
+        request.session.clear()
+        return HttpResponseRedirect(reverse('game:scenario'))
+    return render(request, "game/index.html")
 
 
-class ResultsView(generic.DetailView):
-    model = Question
-    template_name = "game/results.html"
-
-
-def vote(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
+def scenario(request):
+    existing_scenario = request.session.get("game_scenario")
+    if existing_scenario and request.method == "GET":
+        return render(request, "game/scenario.html", {"scenario": existing_scenario})
+    
+    if request.method == "POST":
+        player_action = request.POST.get("player_action")
+        if player_action and existing_scenario:
+            request.session["player_action"] = player_action
+            return HttpResponseRedirect(reverse("game:result"))
+    
+    is_ajax = request.headers.get("Accept") == "application/json"
+    
+    if not is_ajax:
+        return render(request, "game/loading.html", {
+            "message": "Génération de catastrophe en cours...",
+            "check_url": reverse("game:scenario"),
+        })
+    
     try:
-        selected_choice = question.choice_set.get(pk=request.POST["choice"])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(
-            request,
-            "game/detail.html",
-            {
-                "question": question,
-                "error_message": "You didn't select a choice.",
-            },
-        )
-    else:
-        selected_choice.votes = F("votes") + 1
-        selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        return HttpResponseRedirect(reverse("game:results", args=(question.id,)))
+        game = DeathByAI()
+        scenario = asyncio.run(game.generate_scenario())
+        
+        if not scenario or not scenario.strip():
+            raise ValueError("Scénario vide")
+        
+        request.session.update({
+            "game_scenario": scenario,
+            "game_state": "waiting_for_action"
+        })
+        
+        return JsonResponse({
+            'ready': True,
+            'redirect_url': reverse('game:scenario')
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'ready': False,
+            'error': str(e)
+        })
+
+
+def result(request):
+    player_action = request.session.get("player_action")
+    scenario = request.session.get("game_scenario")
+    
+    existing_result = request.session.get("game_result")
+    if existing_result and request.method == "GET":
+        return render(request, "game/result.html", {
+            "result": existing_result,
+            "scenario": scenario, 
+            "player_action": player_action
+        })
+    
+    if not player_action or not scenario:
+        return HttpResponseRedirect(reverse("game:index"))
+    
+    is_ajax = request.headers.get("Accept") == "application/json"
+    
+    if not is_ajax:
+        return render(request, "game/loading.html", {
+            "message": "L'IA décide de votre sort...",
+            "check_url": reverse("game:result"),
+        })
+    
+    try:
+        game = DeathByAI()
+        game.current_scenario = scenario
+        result = asyncio.run(game.evaluate_survival(player_action))
+        
+        request.session.update({
+            "game_result": result,
+            "game_state": "finished"
+        })
+        
+        return JsonResponse({
+            'ready': True,
+            'redirect_url': reverse('game:result')
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'ready': False,
+            'error': str(e)
+        })
+

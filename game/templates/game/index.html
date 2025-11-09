@@ -1,11 +1,25 @@
-{% if latest_question_list %}
-  <ul>
-    {% for question in latest_question_list %}
-      <li>
-        <a href="{% url 'game:detail' question.id %}">{{ question.question_text }}</a>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No game are available.</p>
-{% endif %}
+{% extends 'game/base.html' %}
+
+{% block title %}
+  Death by AI - Menu Principal
+{% endblock %}
+
+{% block subtitle %}
+<h1 class="title">💀 DEATH BY AI 💀</h1>
+{% endblock %}
+
+{% block content %}
+<div class="description">
+  <p>L'Intelligence Artificielle vous met dans des situations de survie extrêmes.</p>
+  <p>
+    Votre mission : <strong>SURVIVRE</strong> en trouvant la bonne stratégie !
+  </p>
+  <p>Serez-vous assez malin pour tromper la mort ?</p>
+</div>
+
+<div class="text-center mt-12">
+  <a href="?new_game=1" class="btn btn-primary text-2xl py-6 px-12">
+    🎮 COMMENCER UNE PARTIE
+  </a>
+</div>
+{% endblock %}

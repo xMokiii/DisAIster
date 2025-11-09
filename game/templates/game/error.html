@@ -1,0 +1,40 @@
+{% extends 'game/base.html' %}
+
+{% block title %}Death by AI - Erreur{% endblock %}
+
+{% block subtitle %}
+<div class="subtitle">⚠️ Problème technique détecté</div>
+{% endblock %}
+
+{% block content %}
+<div class="result-box result-died animate-in">
+    <h2 style="margin-bottom: 25px; text-align: center;">
+        🚨 ERREUR SYSTÈME 🚨
+    </h2>
+    
+    <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="font-size: 16px; font-family: monospace; color: #ff6b7a;">
+            {{ error }}
+        </p>
+    </div>
+    
+    <p style="font-size: 18px; line-height: 1.6; text-align: center; margin: 25px 0;">
+        L'Intelligence Artificielle rencontre des difficultés techniques.<br>
+        Cela peut arriver si Ollama n'est pas démarré ou accessible.
+    </p>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ retry_url }}" class="btn btn-primary">
+            🔄 Réessayer
+        </a>
+        
+        <a href="{% url 'game:index' %}" class="btn btn-secondary">
+            🏠 Retour au menu
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block navigation %}
+<!-- Navigation dans le contenu -->
+{% endblock %}
