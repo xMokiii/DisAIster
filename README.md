@@ -6,8 +6,8 @@ A Django web application that provides a web interface for AI interactions using
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repo-url>
-cd deathbyai
+git clone https://github.com/xMokiii/DisAIster.git
+cd DisAIster
 ```
 
 ### 2. Create Virtual Environment

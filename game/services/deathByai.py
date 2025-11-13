@@ -3,12 +3,12 @@ import random
 import time
 
 class DeathByAI:
-    def __init__(self, model="gemma3", max_chars=500, host='http://localhost:11434'):
+    def __init__(self, model="gemma3:4b", max_chars=500, host='http://localhost:11434'):
         self.model = model
         self.max_chars = max_chars
         self.host = host
         self.current_scenario = None
-        self.used_scenarios = set()  # Garder trace des scénarios utilisés
+        self.used_scenarios = set()
 
         self.prompt = """
 Génère UN scénario de survie RÉALISTE et DANGEREUX en français. Format: "Vous êtes [situation]"
